@@ -1,10 +1,8 @@
 #include "MM.h"
 
+__attribute__((optimize("no-tree-vectorize")))
 void matmul(const float *A, const float *B, float *C, int N)
 {
-    for (int i = 0; i < N * N; i++)
-        C[i] = 0.0f;
-
     for (int i = 0; i < N; i++)
     {
         for (int k = 0; k < N; k++)

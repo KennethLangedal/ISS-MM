@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 
 #include "MM.h"
 
 int main()
 {
-    const long long N = 2048, it = 1;
+    const long long N = 1 << 11, it = 3;
     float *A = (float *)aligned_alloc(32, N * N * sizeof(float));
     float *B = (float *)aligned_alloc(32, N * N * sizeof(float));
+    float *Bt = (float *)aligned_alloc(32, N * N * sizeof(float));
     float *C = (float *)aligned_alloc(32, N * N * sizeof(float));
 
     srand(0);
@@ -22,19 +23,24 @@ int main()
     for (int i = 0; i < N * N; i++)
         C[i] = 0.0f;
 
-    clock_t start = clock();
+    for (int i = 0; i < N * N; i++)
+        Bt[i] = 0.0f;
+
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     for (int i = 0; i < it; i++)
-        matmul(A, B, C, N);
+        matmul(A, B, C, Bt, N);
 
-    clock_t end = clock();
+    gettimeofday(&end, NULL);
 
-    double total_duration = (double)(end - start) / CLOCKS_PER_SEC;
+    double total_duration = (double)(end.tv_usec - start.tv_usec) / 1000000.0 +
+                            (double)(end.tv_sec - start.tv_sec);
     double average_duration = total_duration / it;
     double ops = N * N * N * 2LL; // N^3 multiplications and additions
     double flops = ops / average_duration;
 
-    float cs = 0.0f;
+    double cs = 0.0f;
     for (int i = 0; i < N * N; i++)
         cs += C[i];
 
