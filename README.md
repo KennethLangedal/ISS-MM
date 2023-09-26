@@ -13,3 +13,7 @@ pdflatex -output-directory bin main.tex
 ```
 export OPENBLAS_NUM_THREADS=1
 ```
+
+```
+sudo sysctl kernel.perf_event_paranoid=<parameter>
+```

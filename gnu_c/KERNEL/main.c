@@ -2,34 +2,34 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include "MM.h"
+#include "kernel.h"
 
 int main()
 {
-    const int M = 132 * 32, N = 256 * 16, K = 256 * 16, it = 3;
-    float *A = (float *)malloc(M * K * sizeof(float));
-    float *B = (float *)malloc(K * N * sizeof(float));
-    float *C = (float *)malloc(M * N * sizeof(float));
+    const int L2M = 12 * 10, L2N = 128, N = 384 * 200, it = 20;
+    float *A = (float *)aligned_alloc(32, L2M * L2N * sizeof(float));
+    float *B = (float *)aligned_alloc(32, L2N * N * sizeof(float));
+    float *C = (float *)aligned_alloc(32, L2M * N * sizeof(float));
 
     srand(0);
 
-    for (int i = 0; i < M * K; i++)
+    for (int i = 0; i < L2M * L2N; i++)
         A[i] = ((float)rand() / (float)(RAND_MAX / 2.0f)) - 1.0f;
 
-    for (int i = 0; i < K * N; i++)
+    for (int i = 0; i < L2N * N; i++)
         B[i] = ((float)rand() / (float)(RAND_MAX / 2.0f)) - 1.0f;
-
-    for (int i = 0; i < M * N; i++)
-        C[i] = 0.0f;
 
     double best_duration = 1e10;
 
     for (int i = 0; i < it; i++)
     {
+        for (int i = 0; i < L2M * N; i++)
+            C[i] = 0.0f;
+
         struct timeval start, end;
         gettimeofday(&start, NULL);
 
-        matmul(A, B, C, M, N, K);
+        matmul(A, B, C, L2M, L2N, N);
 
         gettimeofday(&end, NULL);
 
@@ -41,11 +41,11 @@ int main()
     }
 
     // N^3 multiplications and additions
-    double ops = (long long)M * (long long)N * (long long)K * 2LL;
+    double ops = (long long)L2M * (long long)L2N * (long long)N * 2LL;
     double flops = ops / best_duration;
 
     double cs = 0.0f;
-    for (int i = 0; i < M * N; i++)
+    for (int i = 0; i < L2M * N; i++)
         cs += C[i];
 
     printf("%.5f %.5f %.5f\n", best_duration, flops / 1e9, cs);

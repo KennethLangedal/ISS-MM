@@ -1,3 +1,5 @@
 .vscode/settings.json
 gnu_c/a.out
 tex/bin/*
+*.out
+*.o
