@@ -4,9 +4,14 @@
 
 #include "MM.h"
 
-int main()
+int main(int argc, char **argv)
 {
-    const int M = 132 * 32, N = 256 * 16, K = 256 * 16, it = 3;
+    if (argc != 5)
+    {
+        printf("Give arguments M, N, K, and it\n");
+        return 0;
+    }
+    const size_t M = atoi(argv[1]), N = atoi(argv[2]), K = atoi(argv[3]), it = atoi(argv[4]);
     float *A = (float *)malloc(M * K * sizeof(float));
     float *B = (float *)malloc(K * N * sizeof(float));
     float *C = (float *)malloc(M * N * sizeof(float));
@@ -23,6 +28,8 @@ int main()
         C[i] = 0.0f;
 
     double best_duration = 1e10;
+    // N^3 multiplications and additions
+    double ops = M * N * K * 2LL;
 
     for (int i = 0; i < it; i++)
     {
@@ -33,22 +40,22 @@ int main()
 
         gettimeofday(&end, NULL);
 
-        double duration = (double)(end.tv_usec - start.tv_usec) / 1000000.0 +
+        double duration = (double)(end.tv_usec - start.tv_usec) / 1e6 +
                           (double)(end.tv_sec - start.tv_sec);
 
         if (duration < best_duration)
             best_duration = duration;
+
+        double flops = ops / duration;
+        printf("Iteration %d: %.5f %.5f\n", i, duration, flops / 1e9);
     }
 
-    // N^3 multiplications and additions
-    double ops = (long long)M * (long long)N * (long long)K * 2LL;
     double flops = ops / best_duration;
-
     double cs = 0.0f;
     for (int i = 0; i < M * N; i++)
         cs += C[i];
 
-    printf("%.5f %.5f %.5f\n", best_duration, flops / 1e9, cs);
+    printf("Best: %.5f %.5f %.5f\n", best_duration, flops / 1e9, cs);
 
     free(A);
     free(B);

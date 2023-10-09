@@ -27,17 +27,10 @@ int main()
     {
         for (int n = k; n < (k << 1); n += k / 4)
         {
-            int it = N / n;
+            long long it = (N / n) * 10;
 
             for (int i = 0; i < n; i++)
                 C[i] = 0.0f;
-
-            float test = 0.0;
-            for (int i = 0; i < n; i++)
-                test += A[i] + B[i];
-
-            if (test > 1000000.0f)
-                printf("Error %f\n", test);
 
             struct timeval start, end;
             gettimeofday(&start, NULL);
@@ -46,10 +39,10 @@ int main()
 
             gettimeofday(&end, NULL);
 
-            double total_duration = (double)(end.tv_usec - start.tv_usec) / 1000000.0 +
+            double total_duration = (double)(end.tv_usec - start.tv_usec) / 1e6 +
                                     (double)(end.tv_sec - start.tv_sec);
             double average_duration = total_duration / it;
-            double ops = n * 2;
+            double ops = n * ops_per_element;
             double flops = ops / average_duration;
 
             float cs = 0.0f;

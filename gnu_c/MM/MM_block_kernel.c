@@ -1,18 +1,14 @@
 #include "MM.h"
 
-#include <immintrin.h>
 #include <stdlib.h>
 #include <stdalign.h>
+#include <immintrin.h>
 
-// ---- Do not change constants ----
-
+#define RM 4
 #define RN 16
-#define RM 6
 
-#define L2M (RM * 22)
+#define L2M 128
 #define L2N 256
-
-// ---------------------------------
 
 typedef float v8sf __attribute__((vector_size(32)));
 
@@ -26,10 +22,6 @@ static inline void kernel(const float *A, const float *B, float *C, int N)
     v8sf c21 = _mm256_loadu_ps(C + 2 * N + 8);
     v8sf c30 = _mm256_loadu_ps(C + 3 * N);
     v8sf c31 = _mm256_loadu_ps(C + 3 * N + 8);
-    v8sf c40 = _mm256_loadu_ps(C + 4 * N);
-    v8sf c41 = _mm256_loadu_ps(C + 4 * N + 8);
-    v8sf c50 = _mm256_loadu_ps(C + 5 * N);
-    v8sf c51 = _mm256_loadu_ps(C + 5 * N + 8);
 
 #pragma GCC unroll 8
     for (int i = 0; i < L2N; i++)
@@ -52,14 +44,6 @@ static inline void kernel(const float *A, const float *B, float *C, int N)
         v8sf a3 = _mm256_broadcast_ss(A + 3 * L2N + i);
         c30 = _mm256_fmadd_ps(b0, a3, c30);
         c31 = _mm256_fmadd_ps(b1, a3, c31);
-
-        v8sf a4 = _mm256_broadcast_ss(A + 4 * L2N + i);
-        c40 = _mm256_fmadd_ps(b0, a4, c40);
-        c41 = _mm256_fmadd_ps(b1, a4, c41);
-
-        v8sf a5 = _mm256_broadcast_ss(A + 5 * L2N + i);
-        c50 = _mm256_fmadd_ps(b0, a5, c50);
-        c51 = _mm256_fmadd_ps(b1, a5, c51);
     }
 
     _mm256_storeu_ps(C, c00);
@@ -70,29 +54,8 @@ static inline void kernel(const float *A, const float *B, float *C, int N)
     _mm256_storeu_ps(C + 2 * N + 8, c21);
     _mm256_storeu_ps(C + 3 * N, c30);
     _mm256_storeu_ps(C + 3 * N + 8, c31);
-    _mm256_storeu_ps(C + 4 * N, c40);
-    _mm256_storeu_ps(C + 4 * N + 8, c41);
-    _mm256_storeu_ps(C + 5 * N, c50);
-    _mm256_storeu_ps(C + 5 * N + 8, c51);
 }
 
-/*
-    Computes C += A * B
-
-    Every matrix should be stored in row-major order.
-
-    The dimentions should be as follows:
-    C: M x N
-    A: M x K
-    B: K x N
-
-    So C should have M rows and N columns
-
-    For best performance, let:
-    N = 16 * x
-    M = 132 * y
-    K = 256 * z
-*/
 void matmul(const float *A, const float *B, float *C, int M, int N, int K)
 {
     for (int i = 0; i < M * N; i++)
@@ -105,19 +68,19 @@ void matmul(const float *A, const float *B, float *C, int M, int N, int K)
     {
         for (int k = 0; k < K; k += L2N)
         {
-            // Copy A to local aligned L2 space
+            // Copy A to local alligned area
             for (int ai = 0; ai < L2M; ai++)
                 for (int ak = 0; ak < L2N; ak++)
                     L2A[ai * L2N + ak] = A[(i + ai) * K + k + ak];
 
             for (int j = 0; j < N; j += RN)
             {
-                // Copy B to local aligned L1 space
+                // Copy B to local L1 space
                 for (int bk = 0; bk < L2N; bk++)
                     for (int bj = 0; bj < RN; bj++)
                         L1B[bk * RN + bj] = B[(k + bk) * N + j + bj];
 
-                // Call kernel for L2 tile of A, L1 tile of B, and every register sized tile of C
+                // Call kernel for A_L2, B_L1, and every register sized pice of C
                 for (int ci = 0; ci < L2M; ci += RM)
                     kernel(L2A + ci * L2N, L1B, C + (i + ci) * N + j, N);
             }

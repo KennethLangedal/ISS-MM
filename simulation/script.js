@@ -1,9 +1,9 @@
 const c = document.getElementById("M_Canvas");
 const ctx = c.getContext("2d");
 
-const INTERVAL = 25;
+var INTERVAL = 100;
 const N = 16; // Should be x * 2^3
-const size = 12;
+const size = 17;
 const padding = 2;
 const colors = ["lightgray", "gray", "blue", "red", "black"];
 const history_width = 1, history_height = 10;
@@ -16,7 +16,7 @@ var M3 = [];
 
 var h1_head = 0, h2_head = 0;
 var M1_history = [], M2_history = [];
-for (var i = 0; i < 100; i++) {
+for (var i = 0; i < history_size; i++) {
     M1_history.push(0);
     M2_history.push(0);
 }
@@ -49,7 +49,7 @@ init_matrix(M3);
 var I = 0, J = 0, K = 0;
 
 var T = 0;
-var id = setInterval(tick, INTERVAL);
+// var id = setInterval(tick, INTERVAL);
 
 function find_min(M, M_log, level) {
     var min_T = T, min_i = 0, min_j = 0;
@@ -277,12 +277,44 @@ function draw_history(x, y, H, p, context) {
     }
 }
 
+var running = 0;
+tick();
+
 document.addEventListener('keypress', (event) => {
     var name = event.key;
     var any = 0;
+    if (name == "p" && running == 0) {
+        any = 1;
+        running = 1;
+        id = setInterval(tick, INTERVAL);
+    } else if (name == "p" && running == 1) {
+        running = 0;
+        clearInterval(id);
+    }
     if (name == "a") {
         config++;
+        if (config > 3) config = 3;
         any = 1;
+    }
+    if (name == "d") {
+        config--;
+        if (config < 0) config = 0;
+        any = 1;
+    }
+
+    if (name == "f") {
+        INTERVAL = 16;
+        if (running == 1) {
+            clearInterval(id);
+            id = setInterval(tick, INTERVAL);
+        }
+    }
+    if (name == "s") {
+        INTERVAL = 66;
+        if (running == 1) {
+            clearInterval(id);
+            id = setInterval(tick, INTERVAL);
+        }
     }
 
     if (any == 1) {
@@ -297,5 +329,10 @@ document.addEventListener('keypress', (event) => {
         L1I = [0, 0, 0];
         L2I = [0, 0, 0];
         L3I = [0, 0, 0];
+
+        M1_history.fill(0);
+        M2_history.fill(0);
+        h1_head = 0;
+        h2_head = 0;
     }
 }, false);

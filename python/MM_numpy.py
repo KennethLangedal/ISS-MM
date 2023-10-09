@@ -3,7 +3,7 @@ import numpy as np
 
 random.seed(0)
 
-N = 2048
+N = 512
 
 A = [[random.uniform(-1, 1) for _ in range(N)] for _ in range(N)]
 B = [[random.uniform(-1, 1) for _ in range(N)] for _ in range(N)]

@@ -1,9 +1,12 @@
 #include "FMA.h"
 #include <immintrin.h>
 
-#define UNROLL
-
 typedef float v8sf __attribute__((vector_size(32)));
+
+const int ops_per_element = 2;
+
+// Manual vectorization
+// C = A * B[i] + C
 
 void FMA(const float *a, const float *b, float *c, int n, int it)
 {
@@ -20,7 +23,6 @@ void FMA(const float *a, const float *b, float *c, int n, int it)
 
     for (int t = 0; t < it; t++)
     {
-
         for (int i = 0; i < n; i += 64)
         {
             v8sf vb1 = _mm256_load_ps(b + i);
