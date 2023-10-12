@@ -262,7 +262,7 @@ var T = 0;
 var id = -1;
 var running = 0;
 var config = 0;
-var INTERVAL = 66;
+var INTERVAL = 96;
 var L1s = 0;
 var L2s = 0;
 var L3s = 0;
@@ -292,14 +292,14 @@ document.addEventListener('keypress', (event) => {
         reset();
     }
     if (name == "f") {
-        INTERVAL = 16;
+        INTERVAL = 32;
         if (running == 1) {
             clearInterval(id);
             id = setInterval(tick, INTERVAL);
         }
     }
     if (name == "s") {
-        INTERVAL = 66;
+        INTERVAL = 96;
         if (running == 1) {
             clearInterval(id);
             id = setInterval(tick, INTERVAL);
